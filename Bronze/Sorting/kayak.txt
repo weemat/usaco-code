@@ -1,0 +1,104 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+#define all(x) (x).begin(), (x).end()
+int main()
+{
+    // Input
+    int n;
+    cin >> n;
+
+    vector<int> weights(2*n);
+    for (int i = 0; i < 2*n; i++) // 2*n people
+    {
+        cin >> weights[i];
+    }
+
+    // Sort
+    sort(all(weights));
+
+    // Sum
+    int minSum = INT_MAX;
+
+    // Eliminate every possible pair of single kayakers
+    for (int i = 0; i < 2*n; i++)
+    {
+        for (int j = i + 1; j < 2*n; j++)
+        {
+            int sum = 0;
+            for (int k = 0; k < 2*n; k+=2)
+            {
+                int second;
+                if (k == i) // First invalid
+                {
+
+                    k++;
+                    if (k == j) k++; // First two invalid
+
+                    // Check bounds before accessing weights[k+1]
+                    if (k + 1 >= 2*n) {
+                        break; // Exit current iteration
+                    }
+
+                    if (k + 1 == j)
+                    {
+                        if (k + 2 >= 2*n) break;
+                        second = weights[k+2];
+                    }
+                    else second = weights[k+1];
+                }
+                else if (k + 1 == i)
+                {
+                    if (k + 2 == j) {
+                        // Check bounds before accessing weights[k+3]
+                        if (k + 3 >= 2*n) {
+                            break; // Exit current iteration
+                        }
+                        second = weights[k+3];
+                    }
+                    else {
+                        // Check bounds before accessing weights[k+2]
+                        if (k + 2 >= 2*n) {
+                            break; // Exit current iteration
+                        }
+                        second = weights[k+2];
+                    }
+                }
+                else if (k == j)
+                {
+                    k++;
+                    if (k + 1 >= 2*n) break;
+                    second = weights[k+1];
+                }
+                else if (k + 1 == j)
+                {
+                    // Check bounds before accessing weights[k+2]
+                    if (k + 2 >= 2*n) {
+                        break; // Exit current iteration
+                    }
+                    second = weights[k+2];
+                }
+                else {
+                    // Check bounds before accessing weights[k+1]
+                    if (k + 1 >= 2*n) {
+                        break; // Exit current iteration
+                    }
+                    second = weights[k+1];
+                }
+
+                int first = weights[k];
+
+                int diff = second - first;
+                sum += diff;
+
+            }
+            minSum = min(minSum, sum);
+        }
+    }
+    cout << minSum << endl;
+    return 0;
+
+}
