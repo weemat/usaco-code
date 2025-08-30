@@ -7,53 +7,78 @@
 
 using namespace std;
 
-bool simulate(int pos, vector<int> cows, vector<int> hierarchy, map<int, int> cowPos, int n, int m) {
-    cows[pos] = 1; // Place cow 1 at the given position
-    int hierarchyIndex = 1;
+int n, m, k;
 
-    for (int i = 1; i <= n; i ++){ // Iterate through cows
-        if (cows[i] == 0){
-            int nextCow = hierarchy[hierarchyIndex];
-            if (cowPos.count(nextCow) == 0){
-                cows[i] = nextCow; // Place the next cow in the hierarchy
-                cowPos[nextCow] = i; // Update the position of the cow
-            }
-            else{ // If cow is already placed
-                int currentPos = cowPos[nextCow];
-                for (int j = hierarchyIndex; j >= 0; j --){
-                    if (cowPos[hierarchy[j]] > currentPos){
-                        return false;
-                    }
-                }
-            }
+/**
+ * @return whether it's possible to construct a
+ * valid ordering with given fixed elements
+ */
+bool check(vector<int> order, vector<int> &hierarchy) {
+    vector<int> cow_to_pos(n, -1);
+
+    for (int i = 0; i < n; i++) {
+        if (order[i] != -1) { cow_to_pos[order[i]] = i; }
+    }
+
+    int h_idx = 0;
+    for (int i = 0; i < n && h_idx < m; i++) {
+        if (cow_to_pos[hierarchy[h_idx]] != -1) {
+            // we know the next cow has to be in front of it
+
+            if (i > cow_to_pos[hierarchy[h_idx]]) { return false; }
+
+            i = cow_to_pos[hierarchy[h_idx]];
+            h_idx++;
+        } else {
+            while (i < n && order[i] != -1) { i++; }
+
+            // run out of places
+            if (i == n) { return false; }
+
+            order[i] = hierarchy[h_idx];
+            cow_to_pos[hierarchy[h_idx]] = i;
+            h_idx++;
         }
     }
+
     return true;
 }
 
-int main(){
+int main() {
+    freopen("milkorder.in", "r", stdin);
+    freopen("milkorder.out", "w", stdout);
+    cin >> n >> m >> k;
 
-    int n, m, k; cin >> n >> m >> k;
-
-    vector<int> cows(n);
-    vector<int> hierarchy(m + 1);
-    map<int, int> cowPos;
-
-    for (int i = 1; i <= m; i++){
+    vector<int> hierarchy(m);
+    for (int i = 0; i < m; i++) {
         cin >> hierarchy[i];
+        hierarchy[i]--;
     }
 
-    for (int i = 0; i < k; i++){
-        int cow, pos; cin >> cow >> pos;
-        cowPos[cow] = pos;
-        cows[pos] = cow; // Store the cow at the given position
-    }
+    vector<int> order(n, -1);
 
-    for (int i = 1; i <= m; i++){
-        if (simulate(i, cows, hierarchy, cowPos, n, m)) {
-            cout << i << endl;
+    for (int i = 0; i < k; i++) {
+        int cow, pos;
+        cin >> cow >> pos;
+
+        order[--pos] = --cow;
+
+        if (cow == 0) {  // already fixed, nothing we can do
+            cout << pos + 1 << endl;
             return 0;
         }
     }
-    return -1; // If no valid position found
+
+    for (int i = 0; i < n; i++) {
+        // if already fixed, skip
+        if (order[i] == -1) {
+            // try placing cow 1 @ position i
+            order[i] = 0;
+            if (check(order, hierarchy)) {
+                cout << i + 1 << endl;
+                break;
+            }
+            order[i] = -1;
+        }
+    }
 }
